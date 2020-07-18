@@ -21,7 +21,7 @@ contract Inherit {
     uint public amountHeirs = 0;
     Heir[] public heirs;
 
-    uint8 public amountManagers = 2;
+    uint8 public amountManagers = 0;
     address[5] public managers;
 
     Person public owner ;
@@ -36,13 +36,13 @@ contract Inherit {
             phoneNumber : "phone",
             email : "email"
         });
-        heirs.push(Heir({
-          account: 0x7ac305928C723d7D4C8A612A80372f5316Ff3aE6,
-          percentage: 1,
-          payoutOrder: 1
-        }));
-        managers[0] = 0x5e41814b7A7ab6afcE148E9D0ae8D79e88259Fcf;
-        managers[1] = 0x3155590fCA8867c0adCFDEe9c7b314408b290571;
+        addHeir(
+          0xFb383f301805D65e860b58B11d2728bbB945A793,
+          1,
+          1
+        );
+        addManager(0xE05D1C8329304382903c9F72b8dbCBC6CF444Fb9);
+        addManager(0xEFad154ABBc4Af7198E99B65aAD14ef9EDd10365);
     }
 
     //Cada heredero debe ser designado con el porcentaje que debe recibir de herencia
