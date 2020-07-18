@@ -1,5 +1,3 @@
-const mnemonic =
-  "regular unusual replace inject dial siege surround delay diary puppy matrix screen";
 module.exports = {
   networks: {
     development: {
