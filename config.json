@@ -1,6 +1,6 @@
 {
-  "contractAddress": "0x286D2B7b4872f359983Be7E34faDDd6537769d56",
-  "ganacheUrl": "HTTP://127.0.0.1:7545",
+  "contractAddress": "0x55E6ab12Cbea7bc0F5f695F375DCf6098E96e69c",
+  "ganacheUrl": "HTTP://127.0.0.1:8545",
   "infuraMneumonic": "",
   "infuraEndpoint": ""
 }

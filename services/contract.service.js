@@ -12,12 +12,12 @@ const methods = {
     const contractPath = path.resolve(
       process.cwd(),
       "contracts",
-      "Practico1.sol"
+      "obligatorio.sol"
     );
     const compilerInput = {
       language: "Solidity",
       sources: {
-        Practico1: { content: fs.readFileSync(contractPath, "utf8") },
+        obligatorio: { content: fs.readFileSync(contractPath, "utf8") },
       },
       settings: {
         outputSelection: {
@@ -32,7 +32,7 @@ const methods = {
       solc.compile(JSON.stringify(compilerInput))
     );
 
-    const contract = compliedContract.contracts["Practico1"].Practico1;
+    const contract = compliedContract.contracts["obligatorio"].Inherit;
     const abi = contract.abi;
     const abiPath = path.resolve(process.cwd(), "contracts", "abi.json");
     fs.writeFileSync(abiPath, JSON.stringify(abi, null, 2));
@@ -63,7 +63,7 @@ const methods = {
     const result = await new web3.eth.Contract(abi)
       .deploy({
         data: "0x" + bytecode.object,
-        arguments: [accounts[1], accounts[2]],
+        arguments: [],
       })
       .send({
         gas: "3000000",
