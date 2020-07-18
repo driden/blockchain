@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "nodemon index.js",
+    "compile": "npx truffle compile --all",
+    "migrate": "npx truffle migrate",
+    "console": "npx truffle console"
   },
   "author": "",
   "license": "ISC",
