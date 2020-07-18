@@ -16,8 +16,6 @@ contract Inherit {
         uint payoutOrder;
     }
 
-    uint public amountInheritance = address(this).balance;
-
     uint public amountHeirs = 0;
     Heir[] public heirs;
 
@@ -43,6 +41,10 @@ contract Inherit {
         );
         addManager(0xE05D1C8329304382903c9F72b8dbCBC6CF444Fb9);
         addManager(0xEFad154ABBc4Af7198E99B65aAD14ef9EDd10365);
+    }
+
+    function amountInheritance() public returns (uint) {
+        return address(this).balance;
     }
 
     //Cada heredero debe ser designado con el porcentaje que debe recibir de herencia
