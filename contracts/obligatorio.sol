@@ -43,6 +43,9 @@ contract Inherit {
         addManager(0xEFad154ABBc4Af7198E99B65aAD14ef9EDd10365);
     }
 
+    function () external payable {
+    }
+
     function amountInheritance() public returns (uint) {
         return address(this).balance;
     }
