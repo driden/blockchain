@@ -5,6 +5,7 @@ contract Inherit {
         uint256 ci;
         uint birthDate;
         string addressP;
+        address payable addresEth;
         string phoneNumber;
         string email;
         uint hireDate;
@@ -22,7 +23,11 @@ contract Inherit {
     uint8 public amountManagers = 0;
     address[5] public managers;
 
+    uint8 public cancellationPercentage = 2;
+
     Person public owner ;
+
+    address payable public companyAddress;
 
     //Debe recibir owner, un heredero y dos managers.
     constructor() public payable {
@@ -31,6 +36,7 @@ contract Inherit {
             birthDate : 58973597823795938757982,
             hireDate : 98973597823795938757982,
             addressP : "jfasfksdkljflkasjf",
+            addresEth: msg.sender,
             phoneNumber : "phone",
             email : "email"
         });
@@ -41,6 +47,7 @@ contract Inherit {
         );
         addManager(0xE05D1C8329304382903c9F72b8dbCBC6CF444Fb9);
         addManager(0xEFad154ABBc4Af7198E99B65aAD14ef9EDd10365);
+        companyAddress = 0x9084dc54eD39303124cf68c6535F68372c471675;
     }
 
     function () external payable {
@@ -100,4 +107,13 @@ contract Inherit {
             }
         }
     }
+
+    function cancelContract() public {
+        uint fee = (uint(cancellationPercentage)*uint(address(this).balance))/uint(100);
+        if (fee != uint(0)){
+            companyAddress.transfer(fee);
+        }
+        selfdestruct(owner.addresEth);
+    }
+
 }
