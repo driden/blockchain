@@ -108,12 +108,17 @@ contract Inherit {
         }
     }
 
-    function cancelContract() public {
+    function cancelContract() onlyOwner public {
         uint fee = (uint(cancellationPercentage)*uint(address(this).balance))/uint(100);
         if (fee != uint(0)){
             companyAddress.transfer(fee);
         }
         selfdestruct(owner.addresEth);
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner.addresEth);
+        _;
     }
 
 }
