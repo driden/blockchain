@@ -4,12 +4,19 @@ const router = express.Router();
 const { getContract } = require("../services/contract.service");
 
 router.post("/", async (req, res) => {
-  const { managerAddress, myAddress, contractAddress } = req.body;
+  const {
+    heirAddress,
+    heirPercentage,
+    heirPayoutOrder,
+    myAddress,
+    contractAddress,
+  } = req.body;
+
   const contract = getContract(contractAddress);
 
   try {
     const result = await contract.methods
-      .addManager(managerAddress)
+      .addHeir(heirAddress, heirPercentage, heirPayoutOrder)
       .send({ from: myAddress });
     res.status(200).send({ success: result });
   } catch (error) {
@@ -17,14 +24,14 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.delete("/:managerAddress", async (req, res) => {
-  const managerAddress = req.param("managerAddress");
+router.delete("/:heirAddress", async (req, res) => {
+  const managerAddress = req.param("heirAddress");
   const { myAddress, contractAddress } = req.body;
-  
+
   const contract = getContract(contractAddress);
   try {
     const result = await contract.methods
-      .removeManager(managerAddress)
+      .removeHeir(managerAddress)
       .send({ from: myAddress });
     res.status(200).send({ transactionId: result });
   } catch (error) {
