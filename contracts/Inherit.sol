@@ -22,6 +22,9 @@ contract Inherit {
     struct Manager {
         address payable account;
         uint percentage;
+        bool canManage;
+        uint withdrawalTimestamp;
+        uint widhrawalAmount;
     }
 
     //PROPERTIES
@@ -38,10 +41,13 @@ contract Inherit {
     uint private remainingPercentage = 100;
 
     uint public cancellationPercentage = 2; //Parametro en constructor
+    uint canWithdraw = 5; // Parametro en el constructor, los managers pueden sacar un prestamo del 15% del contrato
+
         //COMING FROM OUTSIDE
         address payable public companyAddress = 0x9084dc54eD39303124cf68c6535F68372c471675;
         uint public dollarToWeiRate = 4242802476308100;
         uint public managersPercentage = 5;
+        uint withdrawalPercentageFee = 1; // en las reglas, porcentaje del porcentaje especificado por owner
 
     //INITIALIZATION
     constructor() public payable {
@@ -83,6 +89,15 @@ contract Inherit {
     //MODIFIERS
     modifier onlyOwner() {
         require(msg.sender == owner.addresEth, "Only the owner can execute this method");
+        _;
+    }
+
+    modifier canManage(){
+        for(uint i = 0; i < amountManagers; i++){
+            if (msg.sender == managers[i].account){
+                require(managers[i].canManage, "this account is not authorized");
+            }
+        }
         _;
     }
 
@@ -136,7 +151,10 @@ contract Inherit {
         remainingPercentage = remainingPercentage - managersPercentage;
         managers[amountManagers] = Manager({
             account : managerAccount,
-            percentage: managersPercentage
+            percentage: managersPercentage,
+            canManage:true,
+            withdrawalTimestamp:0,
+            widhrawalAmount:0
         });
         amountManagers++;
     }
@@ -181,6 +199,21 @@ contract Inherit {
         } else {
             heirs[heirIndex].percentage = heirPercentage;
             heirs[heirIndex].payoutOrder = heirPayoutOrder;
+        }
+    }
+    // se dispara un evento cuando pase esto?
+    function withdrawPercentage() canManage public {
+        for (uint i = 0; i < amountManagers; i++){
+            if (managers[i].account == msg.sender){
+
+                uint withdrawalTotal = address(this).balance * withdrawalPercentageFee / 100;
+                uint withdrawalFee = withdrawalPercentageFee * withdrawalTotal / 100;
+                companyAddress.transfer(withdrawalFee);
+                managers[i].account.transfer(withdrawalTotal - withdrawalFee);
+
+                managers[i].withdrawalTimestamp = now;
+                managers[i].widhrawalAmount = withdrawalTotal;
+            }
         }
     }
 }
