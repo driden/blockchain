@@ -29,6 +29,8 @@ contract Inherit {
 
     address payable public companyAddress;
 
+    bool private amountInheritanceIsPublic = true;
+
     //Debe recibir owner, un heredero y dos managers.
     constructor() public payable {
         owner = Person ({
@@ -53,8 +55,12 @@ contract Inherit {
     function () external payable {
     }
 
-    function amountInheritance() public returns (uint) {
+    function amountInheritance() publicFiltered public returns (uint) {
         return address(this).balance - (uint(cancellationPercentage)*uint(address(this).balance))/uint(100);
+    }
+
+    function setAmountInheritanceVisibility(bool isVisible) onlyOwner public{
+        amountInheritanceIsPublic = isVisible;
     }
 
     //Cada heredero debe ser designado con el porcentaje que debe recibir de herencia
@@ -116,11 +122,6 @@ contract Inherit {
         selfdestruct(owner.addresEth);
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner.addresEth);
-        _;
-    }
-
     function upsertHeir(address payable heirAccount, uint8 heirPercentage, uint heirPayoutOrder) onlyOwner public{
         require(heirPayoutOrder > 0, "Payout order must be greater than 0");
         uint percentage = 0;
@@ -143,6 +144,19 @@ contract Inherit {
             heirs[heirIndex].percentage = heirPercentage;
             heirs[heirIndex].payoutOrder = heirPayoutOrder;
         }
+    }
+
+
+    modifier onlyOwner() {
+        require(msg.sender == owner.addresEth, "Only the owner can execute this method");
+        _;
+    }
+
+    modifier publicFiltered(){
+        if(!amountInheritanceIsPublic){
+            require(msg.sender == owner.addresEth, "Only the owner can execute this method");
+        }
+        _;
     }
 
 }
