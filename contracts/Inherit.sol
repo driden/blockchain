@@ -45,17 +45,21 @@ contract Inherit {
     uint256 private canWithdraw = 5; // Parametro en el constructor, los managers pueden sacar un prestamo del 15% del contrato
 
     //COMING FROM OUTSIDE
-    address payable
-        public companyAddress = 0x9084dc54eD39303124cf68c6535F68372c471675;
+    address payable public companyAddress;
 
     uint256 public managersPercentage = 5;
     uint256 private withdrawalPercentageFee = 1; // en las reglas, porcentaje del porcentaje especificado por owner
 
-    // 100 usd = 426 finney
-    // 200 usd = 852 finney
-
     //INITIALIZATION
-    constructor() public payable {
+    constructor(
+        uint256 ci,
+        uint256 birthDate,
+        string memory addressP,
+        string memory phoneNumber,
+        string memory email,
+        uint256 hireDate,
+        address payable _companyAddress
+    ) public payable {
         Rules r = new Rules();
         uint256 amtForTheCompany = r.amountToPayUpfront();
         require(
@@ -63,20 +67,19 @@ contract Inherit {
             "Not enough funds to instance the contract."
         );
 
-        // owner = Person({
-        //     ci: 1111111,
-        //     birthDate: 58973597823795938757982,
-        //     hireDate: 98973597823795938757982,
-        //     addressP: "jfasfksdkljflkasjf",
-        //     addresEth: msg.sender,
-        //     phoneNumber: "phone",
-        //     email: "email"
-        // });
+        owner = Person({
+            ci: ci,
+            birthDate: birthDate,
+            hireDate: hireDate,
+            addressP: addressP,
+            addresEth: msg.sender,
+            phoneNumber: phoneNumber,
+            email: email
+        });
+
         cancellationPercentage = 2;
 
-        // addHeir(0x716b9ddc7d56cb4306cdea6C11482141a2369A28, 1, 1);
-
-        companyAddress = 0x0a2db19C3eB1cdE09cDeA49b0d8bBA2463d370e7;
+        companyAddress = _companyAddress;
         companyAddress.transfer(amtForTheCompany);
     }
 

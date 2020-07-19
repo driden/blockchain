@@ -36,8 +36,32 @@ router.get("/compile", function (req, res) {
 
 router.post("/deploy", async function (req, res) {
   try {
-    const { myAddress } = req.body;
-    const contractAddress = await contractService.deploy(myAddress);
+    const {
+      myAddress,
+      ci,
+      birthDate,
+      hireDate,
+      addressP,
+      addresEth,
+      phoneNumber,
+      email,
+      companyAddress
+    } = req.body;
+
+    const birthDateStamp = new Date(birthDate);
+    const hireDateStamp = new Date(hireDate);
+
+    const contractArgs = [
+      ci,
+      birthDateStamp.getTime() / 1000,
+      addressP,
+      phoneNumber,
+      email,
+      hireDateStamp.getTime() / 1000,
+      companyAddress
+    ];
+
+    const contractAddress = await contractService.deploy(myAddress,contractArgs);
     res.status(200).send({ deployedAt: contractAddress });
   } catch (error) {
     console.log(error);

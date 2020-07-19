@@ -59,12 +59,12 @@ const methods = {
   //   fs.writeFileSync(bytecodePath, JSON.stringify(bytecode, null, 2));
   // },
 
-  async deploy(ownerAddress) {
+  async deploy(ownerAddress, args) {
     const { abi, bytecode } = getMetaFiles();
     const result = await new web3.eth.Contract(abi)
       .deploy({
         data: bytecode,
-        arguments: [],
+        arguments:args,
       })
       .send({
         gas: "5000000",
