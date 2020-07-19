@@ -54,11 +54,11 @@ contract Inherit {
     }
 
     function amountInheritance() public returns (uint) {
-        return address(this).balance;
+        return address(this).balance - (uint(cancellationPercentage)*uint(address(this).balance))/uint(100);
     }
 
     //Cada heredero debe ser designado con el porcentaje que debe recibir de herencia
-    function addHeir (address payable heirAccount, uint8 heirPercentage, uint heirPayoutOrder) public{
+    function addHeir (address payable heirAccount, uint8 heirPercentage, uint heirPayoutOrder) onlyOwner public{
         require(heirPayoutOrder > 0, "Payout order must be greater than 0");
         uint percentage = 0;
         uint length = heirs.length;
@@ -68,12 +68,12 @@ contract Inherit {
             percentage += heirs[j].percentage;
         }
 
-        require(percentage + heirPercentage <= 100, "Adding this heir with percentage would exceed 100 percent");
+        require(percentage + heirPercentage <= 100, "Adding this heir with selected percentage would exceed 100 percent");
         heirs.push(Heir({account: heirAccount, percentage:heirPercentage, payoutOrder: heirPayoutOrder}));
         amountHeirs++;
     }
 
-    function removeHeir(address payable heirAccount) public {
+    function removeHeir(address payable heirAccount) onlyOwner public {
         require(heirs.length > 1, "Cannot remove the only heir");
         for (uint j = 0; j < heirs.length; j++) {
             if (heirs[j].account == heirAccount){
@@ -85,7 +85,7 @@ contract Inherit {
     }
 
     // se puede agregar a manager un beneficiario?
-    function addManager (address payable managerAccount) public {
+    function addManager (address payable managerAccount) onlyOwner public {
         require(amountManagers < 5, "You can't add a new manager");
 
         for(uint i = 0; i < amountManagers; i++) {
@@ -96,7 +96,7 @@ contract Inherit {
         amountManagers++;
     }
 
-    function removeManager(address payable managerAccount) public {
+    function removeManager(address payable managerAccount) onlyOwner public {
         require(amountManagers > 2, "You can't remove a manager right now, a minimum of 2 is needed");
 
         for (uint j = 0; j < managers.length; j++) {
@@ -119,6 +119,30 @@ contract Inherit {
     modifier onlyOwner() {
         require(msg.sender == owner.addresEth);
         _;
+    }
+
+    function upsertHeir(address payable heirAccount, uint8 heirPercentage, uint heirPayoutOrder) onlyOwner public{
+        require(heirPayoutOrder > 0, "Payout order must be greater than 0");
+        uint percentage = 0;
+        uint length = heirs.length;
+        uint heirPreviousPercentage = 0;
+        uint heirIndex = heirs.length;
+        for (uint j = 0; j < length; j++) {
+            if (heirs[j].account == heirAccount){
+                heirIndex = j;
+                heirPreviousPercentage = heirs[j].percentage;
+            } else {
+                require(heirs[j].payoutOrder != heirPayoutOrder, "An heir already exists in that payout position.");
+            }
+            percentage += heirs[j].percentage;
+        }
+        require(percentage - heirPreviousPercentage + heirPercentage <= 100, "Updating this heir with selected percentage would exceed 100 percent");
+        if (heirIndex == heirs.length){ //Si el heredero no existe para hacer upsert
+            heirs.push(Heir({account: heirAccount, percentage:heirPercentage, payoutOrder: heirPayoutOrder}));
+        } else {
+            heirs[heirIndex].percentage = heirPercentage;
+            heirs[heirIndex].payoutOrder = heirPayoutOrder;
+        }
     }
 
 }
