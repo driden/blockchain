@@ -67,8 +67,7 @@ const methods = {
         arguments:args,
       })
       .send({
-        gas: "5000000",
-        gasPrice: "5",
+        gas: "6000000",        
         from: ownerAddress,
         value: web3.utils.toWei("2", "ether"),
       });
