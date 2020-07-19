@@ -41,18 +41,17 @@ contract Inherit {
     uint private remainingPercentage = 100;
 
     uint public cancellationPercentage = 2; //Parametro en constructor
-    uint canWithdraw = 5; // Parametro en el constructor, los managers pueden sacar un prestamo del 15% del contrato
+    uint private canWithdraw = 5; // Parametro en el constructor, los managers pueden sacar un prestamo del 15% del contrato
 
         //COMING FROM OUTSIDE
         address payable public companyAddress = 0x9084dc54eD39303124cf68c6535F68372c471675;
         uint public dollarToWeiRate = 4242802476308100;
         uint public managersPercentage = 5;
-        uint withdrawalPercentageFee = 1; // en las reglas, porcentaje del porcentaje especificado por owner
+        uint private withdrawalPercentageFee = 1; // en las reglas, porcentaje del porcentaje especificado por owner
 
     //INITIALIZATION
     constructor() public payable {
         require(address(this).balance > dollarToWeiRate * uint(200), "Not enough funds to instance the contract.");
-        companyAddress.transfer(dollarToWeiRate * uint(200));
 
         owner = Person ({
             ci : 1111111,
@@ -64,25 +63,26 @@ contract Inherit {
             email : "email"
         });
         addHeir(
-          0xFb383f301805D65e860b58B11d2728bbB945A793,
+          0x3cdD4c51f7f0ceb8A4eeC0bF979fF260A7F05F0B,
           1,
           1
         );
-        addManager(0xE05D1C8329304382903c9F72b8dbCBC6CF444Fb9);
-        addManager(0xEFad154ABBc4Af7198E99B65aAD14ef9EDd10365);
-        companyAddress = 0x9084dc54eD39303124cf68c6535F68372c471675;
+        addManager(0x3155590fCA8867c0adCFDEe9c7b314408b290571);
+        addManager(0x5e41814b7A7ab6afcE148E9D0ae8D79e88259Fcf);
+        companyAddress = 0x6E4De761bf9d23f96888053D4C2d8199fEbC1023;
         cancellationPercentage = 2;
+        companyAddress.transfer(dollarToWeiRate * uint(200));
     }
 
     function () external payable {
     }
 
     //GETTERS & SETTERS
-    function amountInheritance() publicFiltered public view returns (uint) {
-        return address(this).balance - (uint(managersPercentage)* uint(amountManagers) * uint(address(this).balance)/uint(100));
+    function amountInheritance() public publicFiltered view   returns (uint) {
+        return address(this).balance - (uint(managersPercentage) * uint(amountManagers) * uint(address(this).balance)/uint(100));
     }
 
-    function setAmountInheritanceVisibility(bool isVisible) onlyOwner public{
+    function setAmountInheritanceVisibility(bool isVisible) public onlyOwner {
         amountInheritanceIsPublic = isVisible;
     }
 
@@ -116,7 +116,7 @@ contract Inherit {
     }
 
     //FUNCTIONS
-    function addHeir (address payable heirAccount, uint heirPercentage, uint heirPayoutOrder) onlyOwner public{
+    function addHeir (address payable heirAccount, uint heirPercentage, uint heirPayoutOrder) public onlyOwner {
         require(heirPayoutOrder > 0, "Payout order must be greater than 0");
         uint length = heirs.length;
         for (uint j = 0; j < length; j++) {
@@ -130,7 +130,7 @@ contract Inherit {
         amountHeirs++;
     }
 
-    function removeHeir(address payable heirAccount) onlyOwner public {
+    function removeHeir(address payable heirAccount) public  onlyOwner  {
         require(heirs.length > 1, "Cannot remove the only heir");
         for (uint j = 0; j < heirs.length; j++) {
             if (heirs[j].account == heirAccount){
@@ -142,7 +142,7 @@ contract Inherit {
         }
     }
 
-    function addManager (address payable managerAccount) onlyOwner public {
+    function addManager (address payable managerAccount) public onlyOwner  {
         require(amountManagers < 5, "You can't add a new manager");
         for(uint i = 0; i < amountManagers; i++) {
             require(managers[i].account != managerAccount, "This manager already exists");
@@ -159,7 +159,7 @@ contract Inherit {
         amountManagers++;
     }
 
-    function removeManager(address payable managerAccount) onlyOwner public {
+    function removeManager(address payable managerAccount) public onlyOwner {
         require(amountManagers > 2, "You can't remove a manager right now, a minimum of 2 is needed");
         for (uint j = 0; j < managers.length; j++) {
             if (managers[j].account == managerAccount){
@@ -171,7 +171,7 @@ contract Inherit {
         }
     }
 
-    function cancelContract() onlyOwner public {
+    function cancelContract() public onlyOwner {
         uint fee = (uint(cancellationPercentage)*uint(address(this).balance))/uint(100);
         if (fee != uint(0)){
             companyAddress.transfer(fee);
@@ -179,7 +179,7 @@ contract Inherit {
         selfdestruct(owner.addresEth);
     }
 
-    function upsertHeir(address payable heirAccount, uint heirPercentage, uint heirPayoutOrder) onlyOwner public{
+    function upsertHeir(address payable heirAccount, uint heirPercentage, uint heirPayoutOrder) public onlyOwner {
         require(heirPayoutOrder > 0, "Payout order must be greater than 0");
         uint length = heirs.length;
         uint heirPreviousPercentage = 0;
@@ -192,7 +192,8 @@ contract Inherit {
                 require(heirs[j].payoutOrder != heirPayoutOrder, "An heir already exists in that payout position.");
             }
         }
-        require(remainingPercentage + heirPreviousPercentage >= heirPercentage, "Updating this heir with selected percentage would exceed 100 percent");
+        require(remainingPercentage + heirPreviousPercentage >= heirPercentage,
+            "Updating this heir with selected percentage would exceed 100 percent");
         remainingPercentage = remainingPercentage + heirPreviousPercentage - heirPercentage;
         if (heirIndex == heirs.length){ //Si el heredero no existe para hacer upsert
             heirs.push(Heir({account: heirAccount, percentage:heirPercentage, payoutOrder: heirPayoutOrder}));
@@ -201,18 +202,19 @@ contract Inherit {
             heirs[heirIndex].payoutOrder = heirPayoutOrder;
         }
     }
+
     // se dispara un evento cuando pase esto?
-    function withdrawPercentage() canManage public {
+    function withdrawPercentage() public canManage  {
         for (uint i = 0; i < amountManagers; i++){
             if (managers[i].account == msg.sender){
 
                 uint withdrawalTotal = address(this).balance * withdrawalPercentageFee / 100;
                 uint withdrawalFee = withdrawalPercentageFee * withdrawalTotal / 100;
+
+                managers[i].withdrawalTimestamp = block.timestamp;
+                managers[i].widhrawalAmount = withdrawalTotal;
                 companyAddress.transfer(withdrawalFee);
                 managers[i].account.transfer(withdrawalTotal - withdrawalFee);
-
-                managers[i].withdrawalTimestamp = now;
-                managers[i].widhrawalAmount = withdrawalTotal;
             }
         }
     }
