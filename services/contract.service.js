@@ -76,13 +76,10 @@ const methods = {
     fs.writeFileSync(configPath, JSON.stringify(config, null, 2));
   },
 
-  getContract() {
-    const configPath = path.resolve(process.cwd(), "config.json");
-    const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
-    const abiPath = path.resolve(process.cwd(), "contracts", "abi.json");
-    const abi = JSON.parse(fs.readFileSync(abiPath, "utf8"));
-
-    return new web3.eth.Contract(abi, config.contractAddress);
+  getContract(contractAddress) {
+    const abiPath = path.resolve(process.cwd(), "build","contracts", "Inherit.json");
+    const abi = JSON.parse(fs.readFileSync(abiPath, "utf8")).abi;    
+    return new web3.eth.Contract(abi, contractAddress);
   },
 };
 
