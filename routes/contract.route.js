@@ -24,6 +24,7 @@ const errorMsg = (msg) => {
   return response;
 };
 
+// Usamos truffle
 router.get("/compile", function (req, res) {
   try {
     contractService.compile();
@@ -33,27 +34,29 @@ router.get("/compile", function (req, res) {
   }
 });
 
-router.get("/deploy", async function (req, res) {
+router.post("/deploy", async function (req, res) {
   try {
-    await contractService.deploy();
-    res.status(200).send(success());
+    const { myAddress } = req.body;
+    const contractAddress = await contractService.deploy(myAddress);
+    res.status(200).send({ deployedAt: contractAddress });
   } catch (error) {
-    res.send(500).send(errorMsg("Cannot deploy contract"));
+    console.log(error);
+    res.status(500).send(errorMsg(error.message));
   }
 });
 
-router.get("/split", async function (req, res) {
-  try {
-    const contract = contractService.getContract();
-    const accounts = await web3.eth.getAccounts();
-    let result = await contract.methods.split().send({
-      from: accounts[0],
-    });
-    res.status(200).send(success());
-  } catch (error) {
-    res.send(500).send(errorMsg("Cannot deploy contract"));
-  }
-});
+// router.get("/split", async function (req, res) {
+//   try {
+//     const contract = contractService.getContract();
+//     const accounts = await web3.eth.getAccounts();
+//     let result = await contract.methods.split().send({
+//       from: accounts[0],
+//     });
+//     res.status(200).send(success());
+//   } catch (error) {
+//     res.send(500).send(errorMsg("Cannot deploy contract"));
+//   }
+// });
 
 router.get("/debug", async function (req, res) {
   try {
