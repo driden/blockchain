@@ -42,7 +42,6 @@ router.post("/deploy", async function (req, res) {
       birthDate,
       hireDate,
       addressP,
-      addresEth,
       phoneNumber,
       email,
       companyAddress
