@@ -281,7 +281,7 @@ contract Inherit {
         selfdestruct(owner.addresEth);
     }
 
-    function withdrawFunds() public canManage {
+    function withdrawFunds(string memory _reason) public canManage {
         Manager manager = Manager(managers[msg.sender].contractAccount);
         require(
             !manager.hasActiveWithdrawal(),
@@ -297,7 +297,7 @@ contract Inherit {
         ); //Debe retirar menos del fee
         uint256 withdrawalFee = (rules.withdrawalPercentageFee() *
             withdrawalTotal) / 100;
-        manager.registerWithdraw(withdrawalTotal);
+        manager.registerWithdraw(_reason, withdrawalTotal);
         companyAddress.transfer(withdrawalFee);
         msg.sender.transfer(withdrawalTotal - withdrawalFee);
     }
@@ -429,6 +429,7 @@ contract Inherit {
     }
 
     function reduceInheritanceAmount(uint amountToReduce) public onlyOwner {
+        require( amountToReduce < amountInheritance(), "You cant reduce that much money");
         uint reductionFee = amountInheritance() * reductionPercentageFee / 100;
         address(owner.addresEth).transfer(amountToReduce);
         address(companyAddress).transfer(reductionFee);
