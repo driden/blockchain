@@ -5,8 +5,9 @@ const Web3 = require("Web3");
 
 const contractService = require("../services/contract.service");
 const ganacheProvider = require("../providers/ganache");
+const infuraProvider = require("../providers/infura");
 
-const web3 = new Web3(ganacheProvider);
+const web3 = new Web3(infuraProvider);
 
 const response = {
   success: true,
