@@ -1,6 +1,6 @@
 {
   "contractAddress": "0x55E6ab12Cbea7bc0F5f695F375DCf6098E96e69c",
   "ganacheUrl": "HTTP://127.0.0.1:8545",
-  "infuraMneumonic": "",
-  "infuraEndpoint": ""
+  "infuraMneumonic": "model simple topple buffalo young estate cactus repair shoot inner myth avoid",
+  "infuraEndpoint": "https://ropsten.infura.io/v3/c3cdae99bd6a44998217be8a644b7566"
 }

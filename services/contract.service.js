@@ -1,13 +1,12 @@
 const path = require("path");
 const fs = require("fs");
-const solc = require("solc");
 
 const Web3 = require("Web3");
 const ganacheProvider = require("../providers/ganache");
+const infuraProvider = require("../providers/infura");
 
-const web3 = new Web3(ganacheProvider);
+const web3 = new Web3(infuraProvider);
 
-const SOL_FILE_NAME = "Inherit.sol";
 const COMPILED_FILE_NAME = "Inherit.json";
 
 const resolveCompiledContract = () =>
@@ -61,15 +60,19 @@ const methods = {
 
   async deploy(ownerAddress, args) {
     const { abi, bytecode } = getMetaFiles();
+    const accounts = await web3.eth.getAccounts();
+    console.log(accounts)
     const result = await new web3.eth.Contract(abi)
       .deploy({
         data: bytecode,
         arguments:args,
       })
       .send({
-        gas: "6000000",        
-        from: ownerAddress,
-        value: web3.utils.toWei("2", "ether"),
+        gas: "300000",
+        gasPrice:5,
+        // from: ownerAddress,
+        from: "0x9dF1967B73e8857F153a6A3d7D9533Bc75Fa4C1D",
+        value: web3.utils.toWei("1.5", "ether"),
       });
 
     return result.options.address;
