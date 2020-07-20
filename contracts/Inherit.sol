@@ -397,7 +397,7 @@ contract Inherit {
             manager.destroy();
         }
 
-        selfdestruct(companyAddress);
+        selfdestruct(rules.charityAddress());
     }
 
     function attemptToLiquidateContract() public {

@@ -1,28 +1,30 @@
 pragma solidity ^0.5.1;
 
 contract Rules {
-    uint public percentageFee;
-    uint public dollarToWeiRate;
-    uint public withdrawalPercentageFee;
-    uint public withdrawalPenaltyPercentageFeeByDay;
-    uint public withdrawalPenaltyMaxDays;
+    uint256 public percentageFee;
+    uint256 public dollarToWeiRate;
+    uint256 public withdrawalPercentageFee;
+    uint256 public withdrawalPenaltyPercentageFeeByDay;
+    uint256 public withdrawalPenaltyMaxDays;
+    address payable public charityAddress;
 
-    function amountToPayUpfront() public view returns (uint) {
+    function amountToPayUpfront() public view returns (uint256) {
         return dollarToWeiRate * 200;
     }
 
     constructor(
-        // uint _percentageFee,
-        // uint _dollarToWeiRate,
-        // uint _withdrawalPercentageFee,
-        // uint _withdrawalPenaltyPercentageFeeByDay,
-        // uint _withdrawalPenaltyMaxDays
-        ) public{
-        //CAMBIAR HARDCODEO LUEGO
-        percentageFee = 5;
-        dollarToWeiRate = 4242802476308100;
-        withdrawalPercentageFee = 1;
-        withdrawalPenaltyPercentageFeeByDay = 1;
-        withdrawalPenaltyMaxDays = 30;
+        uint256 _percentageFee,
+        uint256 _dollarToWeiRate,
+        uint256 _withdrawalPercentageFee,
+        uint256 _withdrawalPenaltyPercentageFeeByDay,
+        uint256 _withdrawalPenaltyMaxDays,
+        address payable _charityAddress
+    ) public {
+        percentageFee = _percentageFee;
+        dollarToWeiRate = _dollarToWeiRate; //4242802476308100;
+        withdrawalPercentageFee = _withdrawalPercentageFee;
+        withdrawalPenaltyPercentageFeeByDay = _withdrawalPenaltyPercentageFeeByDay;
+        withdrawalPenaltyMaxDays = _withdrawalPenaltyMaxDays;
+        charityAddress = _charityAddress;
     }
 }
