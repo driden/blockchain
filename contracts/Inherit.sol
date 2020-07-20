@@ -13,6 +13,7 @@ contract Inherit {
         string phoneNumber;
         string email;
         uint hireDate;
+        uint lastSignal;
     }
 
     struct Heir {
@@ -25,6 +26,7 @@ contract Inherit {
     struct ManagerStruct {
         bool isValid;
         address payable contractAccount;
+        uint arrayKey;
     }
 
     //PROPERTIES
@@ -37,20 +39,19 @@ contract Inherit {
 
     uint public amountManagers = 0;
     mapping(address => ManagerStruct) public managers; //KEY: Address externa
+    address[5] private managerskeys ;
 
     bool private amountInheritanceIsPublic = true;
 
     uint private remainingPercentage = 100;
 
-    uint public cancellationPercentage = 2; //Parametro en constructor
-    uint public managersPercentageFee = 5; //Parametro en constructor
-    uint public withdrawalPercentageAllowed = 1; //Parametro en constructor
+    uint public cancellationPercentage; //Parametro en constructor
+    uint public managersPercentageFee; //Parametro en constructor
+    uint public withdrawalPercentageAllowed; //Parametro en constructor
 
-    //COMING FROM OUTSIDE
+    Rules private rules;
     address payable public companyAddress;
-    uint public withdrawalPercentageFee = 1; // Fee definido en las reglas
-    uint public withdrawalPenaltyPercentageFeeByDay = 1;
-    uint public withdrawalPenaltyMaxDays = 30;
+    
 
     //INITIALIZATION
     constructor(
@@ -60,10 +61,14 @@ contract Inherit {
         string memory phoneNumber,
         string memory email,
         uint hireDate,
-        address payable _companyAddress
+        uint _cancellationPercentage, 
+        uint _managersPercentageFee,
+        uint _withdrawalPercentageAllowed,
+        address payable _companyAddress,
+        address _rulesAddress
     ) public payable {
-        Rules r = new Rules();
-        uint amtForTheCompany = r.amountToPayUpfront();
+        rules = Rules(_rulesAddress);
+        uint amtForTheCompany = rules.amountToPayUpfront();
         require(
             address(this).balance > amtForTheCompany,
             "Not enough funds to instance the contract."
@@ -76,10 +81,13 @@ contract Inherit {
             addressP: addressP,
             addresEth: msg.sender,
             phoneNumber: phoneNumber,
-            email: email
+            email: email,
+            lastSignal: now
         });
 
-        cancellationPercentage = 2;
+        cancellationPercentage = _cancellationPercentage;
+        managersPercentageFee = _managersPercentageFee;
+        withdrawalPercentageAllowed = _withdrawalPercentageAllowed;
 
         companyAddress = _companyAddress;
         companyAddress.transfer(amtForTheCompany);
@@ -123,19 +131,12 @@ contract Inherit {
     }
 
     modifier publicFiltered() { 
-        // if (!amountInheritanceIsPublic) {
-        //     bool isHeir = false;
-        //     for (uint j = 0; j < heirs.length; j++) {
-        //         if (heirs[j].account == msg.sender) {
-        //             isHeir = true;
-        //             break;
-        //         }
-        //     }
-        //     require(
-        //         isHeir || msg.sender == owner.addresEth,
-        //         "Only the owner or an heir can execute this method"
-        //     );
-        // }
+        if (!amountInheritanceIsPublic) {
+            require(
+                heirs[msg.sender].isValid || msg.sender == owner.addresEth,
+                "Only the owner or an heir can execute this method"
+            );
+        }
         _;
     }
 
@@ -211,12 +212,14 @@ contract Inherit {
     function addManager(address payable managerAccount) public onlyOwner {
         require(amountManagers < 5, "You can't add a new manager");
         require(!managers[managerAccount].isValid,"This manager already exists");        
-        Manager manager = new Manager(managerAccount);
+        Manager manager = new Manager(managerAccount, rules);
         address payable managerAddress = address(uint160(address(manager)));
         managers[managerAccount] = ManagerStruct({
             isValid: true,
-            contractAccount: managerAddress
+            contractAccount: managerAddress,
+            arrayKey: amountManagers
         });
+        managerskeys[amountManagers] = managerAccount;
         amountManagers++;
     }
 
@@ -225,6 +228,12 @@ contract Inherit {
         require(managers[managerAccount].isValid, "Manager doesn't exist");
         Manager manager = Manager(managers[managerAccount].contractAccount);
         manager.destroy();
+        uint managerKey = managers[managerAccount].arrayKey;
+        if (managerKey < amountManagers - 1){ //Si la key está en el medio del arreglo hago swap con la última guardando la referencia en el map
+            address lastManagerInArrayAddress = managerskeys[amountManagers - 1];
+            managerskeys[managerKey] = lastManagerInArrayAddress;
+            managers[lastManagerInArrayAddress].arrayKey = managerKey;
+        }
         delete managers[managerAccount];
         amountManagers--;
     }
@@ -244,7 +253,7 @@ contract Inherit {
         uint withdrawalTotal = (address(this).balance * withdrawalPercentageAllowed ) / 100;
         
         require(withdrawalTotal <= address(this).balance * managersPercentageFee / 100, "Withdrawal limit exceeded"); //Debe retirar menos del fee
-        uint withdrawalFee = (withdrawalPercentageFee *  withdrawalTotal) / 100;
+        uint withdrawalFee = (rules.withdrawalPercentageFee() *  withdrawalTotal) / 100;
         manager.registerWithdraw(withdrawalTotal);
         companyAddress.transfer(withdrawalFee);
         msg.sender.transfer(withdrawalTotal - withdrawalFee);
@@ -256,5 +265,13 @@ contract Inherit {
         require(manager.canPay(), "Not enough founds to repay");
         manager.payWithdraw();
     }
-
+    
+    function activateContract() public {
+        uint daysSinceLastSignal = now - owner.lastSignal / 60 / 60 / 24;
+        require(daysSinceLastSignal / 30 >= 6 || managersReportedOwnersDeath(), "No condition met to activate the contract");
+    }
+    
+    function managersReportedOwnersDeath() private returns (bool){
+        
+    }
 }
