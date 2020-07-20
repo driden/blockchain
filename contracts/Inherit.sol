@@ -129,7 +129,16 @@ contract Inherit {
         require (manager.canManage());
         _;
     }
-
+    
+    modifier isParticipant(){
+        require(heirs[msg.sender].isValid || managers[msg.sender].isValid);
+        if (managers[msg.sender].isValid){
+            Manager manager = Manager(managers[msg.sender].contractAccount);
+            require (manager.canManage());
+        }
+        _;
+    }
+    
     modifier publicFiltered() { 
         if (!amountInheritanceIsPublic) {
             require(
@@ -266,12 +275,38 @@ contract Inherit {
         manager.payWithdraw();
     }
     
-    function activateContract() public {
+    function activateContract() public isParticipant {
         uint daysSinceLastSignal = now - owner.lastSignal / 60 / 60 / 24;
         require(daysSinceLastSignal / 30 >= 6 || managersReportedOwnersDeath(), "No condition met to activate the contract");
     }
     
-    function managersReportedOwnersDeath() private returns (bool){
-        
+    function managersReportedOwnersDeath() private view returns (bool){
+        bool managersReportedDeath = true;
+        uint lastManagerReport = 0;
+        for (uint i = 0; i < amountManagers - 1; i++){
+            Manager manager = Manager(managers[managerskeys[i]].contractAccount);
+            if (!manager.hasReportedOwnerDeath()){
+                managersReportedDeath = false;
+                break;
+            } else {
+                if (manager.reportedOwnerDeathDate() > lastManagerReport){
+                    lastManagerReport = manager.reportedOwnerDeathDate();
+                }
+            }
+        }
+        return (managersReportedDeath && now - lastManagerReport /60 /60 /24 /30 >= 3);
+    }
+    
+    function lifeSignal() public onlyOwner {
+        owner.lastSignal = now;
+        for (uint i = 0; i < amountManagers - 1; i++){
+            Manager manager = Manager(managers[managerskeys[i]].contractAccount);
+            manager.cleanOwnerDeathReport();
+        }
+    }
+    
+    function reportOwnersDeath() public canManage {
+        Manager manager = Manager(managers[msg.sender].contractAccount);
+        manager.reportOwnersDeath();
     }
 }

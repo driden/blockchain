@@ -12,6 +12,9 @@ contract Manager {
     address payable public owner;
     address payable public account;
     bool public hasActiveWithdrawal;
+    bool public hasReportedOwnerDeath;
+    uint public reportedOwnerDeathDate;
+    
     Withdrawal public withdrawal;
     Rules private _rules;
 
@@ -76,5 +79,15 @@ contract Manager {
             penaltyFee = withdrawal.amount * _rules.withdrawalPenaltyPercentageFeeByDay() * penaltyDays / 100;
         }
         return penaltyFee;
+    }
+    
+    function cleanOwnerDeathReport() public onlyOwner{
+        hasReportedOwnerDeath = false;
+        delete(reportedOwnerDeathDate);
+    }
+    
+    function reportOwnersDeath() public onlyOwner {
+        hasReportedOwnerDeath = true;
+        reportedOwnerDeathDate = now;
     }
 }
