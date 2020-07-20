@@ -1,22 +1,25 @@
 pragma solidity ^0.5.1;
 
+import "./Rules.sol";
+
 contract Manager {
     struct Withdrawal {
         uint timestamp;
         uint amount; 
     }
-    bool private _canManage;
 
     //PROPERTIES
     address payable public owner;
     address payable public account;
     bool public hasActiveWithdrawal;
     Withdrawal public withdrawal;
+    Rules private _rules;
 
-    constructor(address payable _account) public payable {
-        _canManage = true;
+    constructor(address payable _account, Rules rules) public payable {
+
         owner = msg.sender;
         account = _account;
+        _rules = rules;
     }
 
     //FALLBACK FUNCTION
@@ -32,21 +35,26 @@ contract Manager {
     }
     
     function canManage() public onlyOwner view returns(bool){
-        return _canManage;
+        return (!hasActiveWithdrawal || calculateWithdrawalFees() == 0);
     }
-
+    
+    //PRE: hasActiveWithdrawal
     function canPay() public onlyOwner view returns (bool){
-        return address(this).balance >= withdrawal.amount;
+        uint penaltyFee = calculateWithdrawalFees();
+        return address(this).balance >= withdrawal.amount + penaltyFee;
     }
-
+    
+    //PRE: !hasActiveWithdrawal
     function registerWithdraw(uint _amount) public onlyOwner{
-        withdrawal.timestamp = block.timestamp;
+        withdrawal.timestamp = now;
         withdrawal.amount = _amount;
         hasActiveWithdrawal = true;
     }
-
+    
+    //PRE: hasActiveWithdrawal
     function payWithdraw() public onlyOwner{
-        uint amount = withdrawal.amount;
+        uint penaltyFee = calculateWithdrawalFees();
+        uint amount = withdrawal.amount + penaltyFee;
         hasActiveWithdrawal = false;
         delete(withdrawal);
         owner.transfer(amount);
@@ -54,5 +62,19 @@ contract Manager {
 
     function destroy() public onlyOwner {
         selfdestruct(account);
+    }
+    
+    //PRE: hasActiveWithdrawal
+    function calculateWithdrawalFees() private view returns(uint){
+        uint penaltyFee = 0;
+        uint diff = (now - withdrawal.timestamp) / 60 / 60 / 24;
+        if (diff > 90){
+            uint penaltyDays = diff - 90;
+            if (penaltyDays > _rules.withdrawalPenaltyMaxDays()){
+                penaltyDays = _rules.withdrawalPenaltyMaxDays();
+            }
+            penaltyFee = withdrawal.amount * _rules.withdrawalPenaltyPercentageFeeByDay() * penaltyDays / 100;
+        }
+        return penaltyFee;
     }
 }
