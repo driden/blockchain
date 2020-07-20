@@ -2,8 +2,8 @@ const express = require("express");
 const router = express.Router();
 
 const Web3 = require("Web3");
-
-const contractService = require("../services/contract.service");
+ 
+constcontractService = require("../services/contract.service");
 const ganacheProvider = require("../providers/ganache");
 const infuraProvider = require("../providers/infura");
 
@@ -35,7 +35,7 @@ router.get("/compile", function (req, res) {
   }
 });
 
-router.post("/deploy", async function (req, res) {
+router.post("/deploy/inherit", async function (req, res) {
   try {
     const {
       myAddress,
@@ -45,7 +45,13 @@ router.post("/deploy", async function (req, res) {
       addressP,
       phoneNumber,
       email,
-      companyAddress
+      cancellationPercentage,
+      reductionPercentageFee,
+      managersPercentangeFee,
+      withdrawalPercentageAllowed,
+      companyAddress,
+      rulesAddress
+           
     } = req.body;
 
     const birthDateStamp = new Date(birthDate);
@@ -58,7 +64,12 @@ router.post("/deploy", async function (req, res) {
       phoneNumber,
       email,
       hireDateStamp.getTime() / 1000,
-      companyAddress
+      cancellationPercentage,
+      reductionPercentageFee,
+      managersPercentangeFee,
+      withdrawalPercentageAllowed,
+      companyAddress,
+      rulesAddress
     ];
 
     const contractAddress = await contractService.deploy(myAddress,contractArgs);
@@ -69,30 +80,31 @@ router.post("/deploy", async function (req, res) {
   }
 });
 
-// router.get("/split", async function (req, res) {
-//   try {
-//     const contract = contractService.getContract();
-//     const accounts = await web3.eth.getAccounts();
-//     let result = await contract.methods.split().send({
-//       from: accounts[0],
-//     });
-//     res.status(200).send(success());
-//   } catch (error) {
-//     res.send(500).send(errorMsg("Cannot deploy contract"));
-//   }
-// });
-
-router.get("/debug", async function (req, res) {
+router.post("/deploy/rules", async function (req, res) {
   try {
-    const contract = contractService.getContract();
-    const accounts = await web3.eth.getAccounts();
-    let result = await contract.methods.heirs(0).send({
-      from: accounts[0],
-    });
-    res.status(200).send(success(result));
+    const {
+      myAddress,
+      percentageFee,
+      dollarToWeiRate,
+      withdrawalPercentageFee,
+      withdrawalPenaltyPercentageFeeByDay,
+      withdrawalPenaltyMaxDays,
+      charityAddress
+    } = req.body;
+
+    const contractArgs = [
+        percentageFee,
+        dollarToWeiRate,
+        withdrawalPercentageFee,
+        withdrawalPenaltyPercentageFeeByDay,
+        withdrawalPenaltyMaxDays,
+        charityAddress
+    ];
+
+    const contractAddress = await contractService.deploy(myAddress,contractArgs);
+    res.status(200).send({ deployedAt: contractAddress });
   } catch (error) {
-    res.send(500).send(errorMsg("Cannot deploy contract"));
+    res.status(500).send(errorMsg(error.message));
   }
 });
-
 module.exports = router;
